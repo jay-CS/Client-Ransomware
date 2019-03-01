@@ -38,13 +38,12 @@ class Encrypt():
         plain_padded = decrypt.update(ciphertext) + decrypt.finalize() 
         plaintext = unpad.update(plain_padded) + unpad.finalize()
         print("\n")
-        return base64.b64decode(plaintext)
+        return bytes.decode(plaintext)
     
 
     def myEncryptFile(self, filename):
         with open(filename,'rb') as pic:
             text = pic.read()
-            base64.b64encode(text)
         return self.myEncrypt(text)
 
 
@@ -53,13 +52,14 @@ class Encrypt():
 
 def main():
     encrypt = Encrypt()
-    #print("Decryption:",encrypt.myDecrypt(*encrypt.myEncrypt(encrypt.message)))
-    #encrypt.myEncryptFile("/Users/samantharain/Desktop/378practicetext.txt")
-    C,IV = encrypt.myEncryptFile("/Users/samantharain/Desktop/proxy.duckduckgo.jpg")
-    pic = encrypt.myDecrypt(C,IV)
-    with open("378pic.jpg","wb") as t:
-        t.write(pic)
-    t.close()
-    
+    # print("Decryption:",encrypt.myDecrypt(*encrypt.myEncrypt(encrypt.message)))
+    # C,IV = encrypt.myEncryptFile("/Users/samantharain/Desktop/proxy.duckduckgo.jpg")
+    # pic = encrypt.myDecrypt(C,IV)
+    # with open("378pigitc.jpg","wb") as t:
+    #     t.write(pic)
+    # t.close()
+    C,IV = encrypt.myEncryptFile("/Users/samantharain/Desktop/378practicetext.txt")
+    t = encrypt.myDecrypt(C,IV)
+    print(t)
 main()
 
