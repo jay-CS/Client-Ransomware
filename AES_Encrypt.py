@@ -8,12 +8,13 @@ from cryptography.hazmat.primitives import padding
 
 
 
-def myEncrypt(message, key):
+def MyEncrypt(message, key):
     """
     Encrypts a message using AES. The message is padded if the last block length is not 32 bits.
-    INPUT:  message (message for encryption, byte string)
-    OUTPUT: ciphertext (encrypted message, byte string)
-            IV (initialization vector)
+    INPUT:  message - (byte str) message for encryptipn
+            key - (byte str) random key
+    OUTPUT: ciphertext (byte str) - encrypted message
+            iv (initialization vector)
     """
 
     if len(key) < constants.KEY_LEN:
@@ -21,28 +22,28 @@ def myEncrypt(message, key):
         return 
 
     # generating initialization vector
-    IV = os.urandom(constants.IV_LEN)   
+    iv = os.urandom(constants.IV_LEN)   
 
     backend = default_backend()
     pad = padding.PKCS7(algorithms.AES.block_size).padder()
     data = pad.update(message) + pad.finalize()
-    cipher = Cipher(algorithms.AES(key),modes.CBC(IV),backend = backend)
+    cipher = Cipher(algorithms.AES(key),modes.CBC(iv),backend = backend)
     encrypt = cipher.encryptor()
     ciphertext = encrypt.update(data) + encrypt.finalize()
 
-    return ciphertext, IV
+    return ciphertext, iv
 
 
-def myDecrypt(ciphertext, IV, key):
+def MyDecrypt(ciphertext, iv, key):
     """
     Decryptes the cipher text to its original message
-    INPUT:  ciphertext - (byte str) message to be decrypted, byte string
-            IV - (byte str) initialization vector
-            key - (byte str)
+    INPUT:  ciphertext - (byte str) message to be decrypte
+            iv - (initialization vector)
+            key - (byte str) random key
     OUTPIT: plaintext - (byte str) decrypted message
     """
     backend = default_backend()
-    cipher = Cipher(algorithms.AES(key),modes.CBC(IV),backend = backend)
+    cipher = Cipher(algorithms.AES(key),modes.CBC(iv),backend = backend)
     decrypt = cipher.decryptor()
     unpad = padding.PKCS7(algorithms.AES.block_size).unpadder()
     plain_padded = decrypt.update(ciphertext) + decrypt.finalize() 
@@ -51,13 +52,13 @@ def myDecrypt(ciphertext, IV, key):
     return plaintext
 
 
-def myFileEncrypt(filepath):
+def MyFileEncrypt(filepath):
     """
     Encrypts a file with a generated key.
-    Creates encrypted file as 'encryptedFile.ext'
-    INPUT:  filepath (path to file, string)
+    Creates encrypted file as 'encrypted_fileName.ext'
+    INPUT:  filepath (str) path to file
     OUTPUT: c (byte str) - ciphertext
-            IV - (byte str) initialization vector
+            iv - (byte str) initialization vector
             key - (byte str)
             ext - (str) file extension
     """
@@ -69,30 +70,30 @@ def myFileEncrypt(filepath):
 
     fileName, ext = fileInfo(filepath)
 
-    c, IV = myEncrypt(data, key)
+    c, iv = MyEncrypt(data, key)
 
     newPath = constants.FOLDER_PATH + "encrypted_" + fileName + "." + ext
     out_file = open(newPath, "wb") # writing back to file
     out_file.write(c)
     out_file.close()
 
-    return c, IV, key, ext
+    return c, iv, key, ext
 
 
-def myFileDecrypt(filepath, ext, IV, key):
+def MyFileDecrypt(filepath, ext, iv, key):
     """
     Decrypts an encrypted file. 
-    Creates a new file with original message as 'decryptedFile.ext'
+    Creates a new file with original message as 'decrypted_fileName.ext'
     INPUT:  filepath - (str) path to encrypted file
             ext - (str) extension of file
-            IV - (byte str) initialization vector
-            key - (byte str)
+            iv - (byte str) initialization vector
+            key - (byte str) random key
     """
     in_file = open(filepath, "rb")
     data = in_file.read()
     in_file.close()
 
-    m = myDecrypt(data, IV, key)
+    m = MyDecrypt(data, iv, key)
 
     fileName = fileInfo(filepath)[0]
 
@@ -104,7 +105,7 @@ def myFileDecrypt(filepath, ext, IV, key):
     return m
 
 
-def myEncryptMAC(message, EncKey, HMACKey):
+def MyEncryptMAC(message, EncKey, HMACKey):
     """
     Modified myEncrypt to include policy of Encrypt-then-MAC 
     INPUT:  message
@@ -114,21 +115,15 @@ def myEncryptMAC(message, EncKey, HMACKey):
             IV  (initialization vector)
             tag ()
     """
-    if len(EncKey) < constants.KEY_LEN:
-        print("ERROR: Key must be at least",constants.KEY_LEN, "bytes.")
-        return 
-
-    IV = os.urandom(constants.IV_LEN)   # GENERATING IV
-
     return
     
 
 def fileInfo(filepath):
     """
-    Gets the file name and extension from a file
+    Gets the file name and extension from a filepath
     INPUT:  filepath - (str) path to file
-    OUTPUT: fileName - (str) name of file
-            ext - (str) extension of file
+    OUTPUT: fileName[0] - (str) name of file
+            fileName[1] - (str) extension of file
     """
     fileName = filepath.split("/")[-1]
     fileName = fileName.split(".")
@@ -137,26 +132,27 @@ def fileInfo(filepath):
 
 def main():
     # TESTING WITH TEXT FILE
-    c, IV, key, ext = myFileEncrypt(constants.FOLDER_PATH + "test1.txt")
+    fileName = "test1.txt"
+    c, IV, key, ext = MyFileEncrypt(constants.FOLDER_PATH + fileName)
     print(c)
-    m = myDecrypt(c, IV, key)
+    m = MyDecrypt(c, IV, key)
     print(m)
 
 
     # TESTING WITH JPEG FILE
     fileName = "face.JPG"
-    c, IV, key, ext = myFileEncrypt(constants.FOLDER_PATH + fileName)
+    c, IV, key, ext = MyFileEncrypt(constants.FOLDER_PATH + fileName)
 
     encryptedPath = "test-files/encrypted_" + fileName
-    m = myFileDecrypt(encryptedPath, ext, IV, key)
+    m = MyFileDecrypt(encryptedPath, ext, IV, key)
 
 
     # TESTING WITH PNG FILE
     fileName = "CBC.png"
-    c, IV, key, ext = myFileEncrypt(constants.FOLDER_PATH + fileName)
+    c, IV, key, ext = MyFileEncrypt(constants.FOLDER_PATH + fileName)
 
     encryptedPath = "test-files/encrypted_" + fileName
-    m = myFileDecrypt(encryptedPath, ext, IV, key)
+    m = MyFileDecrypt(encryptedPath, ext, IV, key)
 
 
 
