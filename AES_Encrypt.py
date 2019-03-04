@@ -66,12 +66,12 @@ def myFileEncrypt(filepath):
     in_file = open(filepath, "rb")
     data = in_file.read()
     in_file.close()
-    path = filepath.split(".")
-    ext = "." + path[-1]
+
+    fileName, ext = fileInfo(filepath)
 
     c, IV = myEncrypt(data, key)
 
-    newPath = "test-files/encryptedFile" + ext
+    newPath = "test-files/encrypted_" + fileName + "." + ext
     out_file = open(newPath, "wb") # writing back to file
     out_file.write(c)
     out_file.close()
@@ -94,7 +94,9 @@ def myFileDecrypt(filepath, ext, IV, key):
 
     m = myDecrypt(data, IV, key)
 
-    newPath = "test-files/decryptedFile" + ext
+    fileName = fileInfo(filepath)[0]
+
+    newPath = "test-files/decrypted_" + fileName + "." + ext
     out_file = open(newPath, "wb") # writing decrypted message to file
     out_file.write(m)
     out_file.close()
@@ -119,6 +121,17 @@ def myEncryptMAC(message, EncKey, HMACKey):
 
     return
     
+
+def fileInfo(filepath):
+    """
+    Gets the file name and extension from a file
+    INPUT:  filepath - (str) path to file
+    OUTPUT: fileName - (str) name of file
+            ext - (str) extension of file
+    """
+    fileName = filepath.split("/")[-1]
+    fileName = fileName.split(".")
+    return fileName[0], fileName[1]
     
 
 def main():
@@ -130,16 +143,18 @@ def main():
 
 
     # TESTING WITH JPEG FILE
-    c, IV, key, ext = myFileEncrypt("test-files/face.JPG")
+    fileName = "face.JPG"
+    c, IV, key, ext = myFileEncrypt("test-files/"+fileName)
 
-    encryptedPath = "test-files/encryptedFile" + ext
+    encryptedPath = "test-files/encrypted_" + fileName
     m = myFileDecrypt(encryptedPath, ext, IV, key)
 
 
     # TESTING WITH PNG FILE
-    c, IV, key, ext = myFileEncrypt("test-files/CBC.png")
+    fileName = "CBC.png"
+    c, IV, key, ext = myFileEncrypt("test-files/"+ fileName)
 
-    encryptedPath = "test-files/encryptedFile" + ext
+    encryptedPath = "test-files/encrypted_" + fileName
     m = myFileDecrypt(encryptedPath, ext, IV, key)
 
 
