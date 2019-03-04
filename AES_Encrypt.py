@@ -71,7 +71,7 @@ def myFileEncrypt(filepath):
 
     c, IV = myEncrypt(data, key)
 
-    newPath = "test-files/encrypted_" + fileName + "." + ext
+    newPath = constants.FOLDER_PATH + "encrypted_" + fileName + "." + ext
     out_file = open(newPath, "wb") # writing back to file
     out_file.write(c)
     out_file.close()
@@ -96,10 +96,11 @@ def myFileDecrypt(filepath, ext, IV, key):
 
     fileName = fileInfo(filepath)[0]
 
-    newPath = "test-files/decrypted_" + fileName + "." + ext
+    newPath = constants.FOLDER_PATH + "decrypted_" + fileName + "." + ext
     out_file = open(newPath, "wb") # writing decrypted message to file
     out_file.write(m)
     out_file.close()
+    
     return m
 
 
@@ -136,7 +137,7 @@ def fileInfo(filepath):
 
 def main():
     # TESTING WITH TEXT FILE
-    c, IV, key, ext = myFileEncrypt("test-files/test1.txt")
+    c, IV, key, ext = myFileEncrypt(constants.FOLDER_PATH + "test1.txt")
     print(c)
     m = myDecrypt(c, IV, key)
     print(m)
@@ -144,7 +145,7 @@ def main():
 
     # TESTING WITH JPEG FILE
     fileName = "face.JPG"
-    c, IV, key, ext = myFileEncrypt("test-files/"+fileName)
+    c, IV, key, ext = myFileEncrypt(constants.FOLDER_PATH + fileName)
 
     encryptedPath = "test-files/encrypted_" + fileName
     m = myFileDecrypt(encryptedPath, ext, IV, key)
@@ -152,7 +153,7 @@ def main():
 
     # TESTING WITH PNG FILE
     fileName = "CBC.png"
-    c, IV, key, ext = myFileEncrypt("test-files/"+ fileName)
+    c, IV, key, ext = myFileEncrypt(constants.FOLDER_PATH + fileName)
 
     encryptedPath = "test-files/encrypted_" + fileName
     m = myFileDecrypt(encryptedPath, ext, IV, key)
