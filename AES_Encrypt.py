@@ -5,6 +5,7 @@ from cryptography.hazmat.primitives.ciphers.aead import AESCCM
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import padding
+from cryptography.hazmat.primitives import hashes, hmac
 
 
 
@@ -63,28 +64,28 @@ def MyFileEncrypt(filepath):
             ext - (str) file extension
     """
     key = os.urandom(constants.KEY_LEN)
-
+    HMAC_key = os.urandom(constants.HMAC_KEY_LEN)
     in_file = open(filepath, "rb")
     data = in_file.read()
     in_file.close()
 
     fileName, ext = fileInfo(filepath)
 
-    c, iv = MyEncrypt(data, key)
+    c, iv, tag = MyEncryptHMAC(data,key,HMAC_key)
 
     newPath = constants.FOLDER_PATH + "encrypted_" + fileName + "." + ext
     out_file = open(newPath, "wb") # writing back to file
     out_file.write(c)
     out_file.close()
 
-    return c, iv, key, ext
+    return c, iv, tag, key, HMAC_key, ext
 
 
-def MyFileDecrypt(filepath, ext, iv, key):
+def MyFileDecrypt(filepath, ext, IV, tag, EncKey, HMAC_Key):
     """
     Decrypts an encrypted file. 
     Creates a new file with original message as 'decrypted_fileName.ext'
-    INPUT:  filepath - (str) path to encrypted file
+    INPUT:  filepath - (str) path to encrypt8 v b bed file
             ext - (str) extension of file
             iv - (byte str) initialization vector
             key - (byte str) random key
@@ -93,19 +94,21 @@ def MyFileDecrypt(filepath, ext, iv, key):
     data = in_file.read()
     in_file.close()
 
-    m = MyDecrypt(data, iv, key)
+    plaintext = MyDecryptHMAC(data, IV, tag, EncKey, HMAC_Key)
 
     fileName = fileInfo(filepath)[0]
 
     newPath = constants.FOLDER_PATH + "decrypted_" + fileName + "." + ext
+    print("New Decrypted Path: \n", newPath)
     out_file = open(newPath, "wb") # writing decrypted message to file
-    out_file.write(m)
+    out_file.write(plaintext)
     out_file.close()
     
-    return m
+    return plaintext
 
 
-def MyEncryptMAC(message, EncKey, HMACKey):
+
+def MyEncryptHMAC(message, EncKey, HMACKey):
     """
     Modified myEncrypt to include policy of Encrypt-then-MAC 
     INPUT:  message
@@ -115,8 +118,24 @@ def MyEncryptMAC(message, EncKey, HMACKey):
             IV  (initialization vector)
             tag ()
     """
-    return
+    C, IV = MyEncrypt(message,EncKey)
+    h = hmac.HMAC(HMACKey,hashes.SHA256(),backend = default_backend())
+    h.update(C)
+    tag = h.finalize()
+    return C, IV, tag
     
+
+
+
+def MyDecryptHMAC(ciphertext, IV, tag,EncKey,HMACKey):
+    h = hmac.HMAC(HMACKey, hashes.SHA256(), backend = default_backend())
+    h.update(ciphertext)
+    h.verify(tag)
+    plaintext = MyDecrypt(ciphertext,IV, EncKey)
+    print("DECRYPTED WITH HMAC: \n", plaintext)
+    return plaintext
+
+
 
 def fileInfo(filepath):
     """
@@ -132,28 +151,27 @@ def fileInfo(filepath):
 
 def main():
     # TESTING WITH TEXT FILE
-    fileName = "test1.txt"
-    c, IV, key, ext = MyFileEncrypt(constants.FOLDER_PATH + fileName)
-    print(c)
-    m = MyDecrypt(c, IV, key)
-    print(m)
+    fileName = "378practicetext.txt"
+    C, IV, tag, key, hkey, ext = MyFileEncrypt(constants.FOLDER_PATH + fileName)
+    encryptedPath = "/Users/samantharain/Desktop/Encrypting/test-files/encrypted_" + fileName
+    m = MyFileDecrypt(encryptedPath, ext, IV, tag, key, hkey)
 
 
     # TESTING WITH JPEG FILE
-    fileName = "face.JPG"
-    c, IV, key, ext = MyFileEncrypt(constants.FOLDER_PATH + fileName)
+    fileName = "happy.jpg"
+    c, IV, tag, key, hkey, ext = MyFileEncrypt(constants.FOLDER_PATH + fileName)
 
-    encryptedPath = "test-files/encrypted_" + fileName
-    m = MyFileDecrypt(encryptedPath, ext, IV, key)
+    encryptedPath = "/Users/samantharain/Desktop/Encrypting/test-files/encrypted_" + fileName
+    m = MyFileDecrypt(encryptedPath, ext, IV, tag, key, hkey)
+    print("Encrypted Path: \n", encryptedPath)
 
 
     # TESTING WITH PNG FILE
     fileName = "CBC.png"
-    c, IV, key, ext = MyFileEncrypt(constants.FOLDER_PATH + fileName)
+    c, IV, tag, key, hkey, ext = MyFileEncrypt(constants.FOLDER_PATH + fileName)
 
-    encryptedPath = "test-files/encrypted_" + fileName
-    m = MyFileDecrypt(encryptedPath, ext, IV, key)
-
+    encryptedPath = "/Users/samantharain/Desktop/Encrypting/test-files/encrypted_" + fileName
+    m = MyFileDecrypt(encryptedPath, ext, IV, tag, key, hkey)
 
 
 
