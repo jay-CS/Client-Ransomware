@@ -5,7 +5,7 @@ from cryptography.hazmat.primitives.ciphers.aead import AESCCM
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import padding
-
+import json
 
 
 def MyEncrypt(message, key):
@@ -58,7 +58,7 @@ def MyFileEncrypt(filepath):
     Creates encrypted file as 'encrypted_fileName.ext'
     INPUT:  filepath (str) path to file
     OUTPUT: c (byte str) - ciphertext
-            iv - (byte str) initialization vector
+            iv - (initialization vector)
             key - (byte str)
             ext - (str) file extension
     """
@@ -68,12 +68,11 @@ def MyFileEncrypt(filepath):
     data = in_file.read()
     in_file.close()
 
-    fileName, ext = fileInfo(filepath)
+    ext = fileInfo(filepath)[1]
 
     c, iv = MyEncrypt(data, key)
 
-    newPath = constants.FOLDER_PATH + "encrypted_" + fileName + "." + ext
-    out_file = open(newPath, "wb") # writing back to file
+    out_file = open(filepath, "wb") # writing over same file
     out_file.write(c)
     out_file.close()
 
@@ -88,6 +87,8 @@ def MyFileDecrypt(filepath, ext, iv, key):
             ext - (str) extension of file
             iv - (byte str) initialization vector
             key - (byte str) random key
+    OUTPUT: m - (byte str) 
+        
     """
     in_file = open(filepath, "rb")
     data = in_file.read()
@@ -97,8 +98,9 @@ def MyFileDecrypt(filepath, ext, iv, key):
 
     fileName = fileInfo(filepath)[0]
 
-    newPath = constants.FOLDER_PATH + "decrypted_" + fileName + "." + ext
-    out_file = open(newPath, "wb") # writing decrypted message to file
+    newPath = "test-files/decrypted_" + fileName + "." + ext
+    out_file = open(newPath, "wb") # writing decrypted message to new file
+    #out_file = open(filepath, "wb") # writing decrypted message to same file
     out_file.write(m)
     out_file.close()
     
@@ -132,27 +134,25 @@ def fileInfo(filepath):
 
 def main():
     # TESTING WITH TEXT FILE
-    fileName = "test1.txt"
-    c, IV, key, ext = MyFileEncrypt(constants.FOLDER_PATH + fileName)
+    filepath = "test-files/test1.txt"
+    c, iv, key, ext = MyFileEncrypt(filepath)
     print(c)
-    m = MyDecrypt(c, IV, key)
+    m = MyFileDecrypt(filepath, ext, iv, key)
     print(m)
 
 
+
+    # TODO: We must save c, IV, key, ext to decrypt a file
+    # so, write to disk (can use json) store: {'constant=' ,key, IV, ext, cipher}  
+    # Constant signifies if you've already encrypted a file or not 
+    # Decrypter module will grab json files to have the attribues to decrypt a file
+
+
     # TESTING WITH JPEG FILE
-    fileName = "face.JPG"
-    c, IV, key, ext = MyFileEncrypt(constants.FOLDER_PATH + fileName)
+    filepath = "test-files/face.JPG"
+    c, iv, key, ext = MyFileEncrypt(filepath)
 
-    encryptedPath = "test-files/encrypted_" + fileName
-    m = MyFileDecrypt(encryptedPath, ext, IV, key)
-
-
-    # TESTING WITH PNG FILE
-    fileName = "CBC.png"
-    c, IV, key, ext = MyFileEncrypt(constants.FOLDER_PATH + fileName)
-
-    encryptedPath = "test-files/encrypted_" + fileName
-    m = MyFileDecrypt(encryptedPath, ext, IV, key)
+    m = MyFileDecrypt(filepath, ext, iv, key)
 
 
 
