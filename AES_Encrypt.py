@@ -5,6 +5,7 @@ from cryptography.hazmat.primitives.ciphers.aead import AESCCM
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import padding
+import json
 from cryptography.hazmat.primitives import hashes, hmac
 
 
@@ -20,10 +21,10 @@ def MyEncrypt(message, key):
 
     if len(key) < constants.KEY_LEN:
         print("ERROR: Key must be at least",constants.KEY_LEN, "bytes.")
-        return 
+        return
 
     # generating initialization vector
-    iv = os.urandom(constants.IV_LEN)   
+    iv = os.urandom(constants.IV_LEN)
 
     backend = default_backend()
     pad = padding.PKCS7(algorithms.AES.block_size).padder()
@@ -47,7 +48,7 @@ def MyDecrypt(ciphertext, iv, key):
     cipher = Cipher(algorithms.AES(key),modes.CBC(iv),backend = backend)
     decrypt = cipher.decryptor()
     unpad = padding.PKCS7(algorithms.AES.block_size).unpadder()
-    plain_padded = decrypt.update(ciphertext) + decrypt.finalize() 
+    plain_padded = decrypt.update(ciphertext) + decrypt.finalize()
     plaintext = unpad.update(plain_padded) + unpad.finalize()
 
     return plaintext
@@ -55,7 +56,7 @@ def MyDecrypt(ciphertext, iv, key):
 
 def MyEncryptHMAC(message, EncKey, HMACKey):
     """
-    Modified myEncrypt to include policy of Encrypt-then-MAC 
+    Modified myEncrypt to include policy of Encrypt-then-MAC
     INPUT:  message
             EncKey
             HMACKey
@@ -68,7 +69,7 @@ def MyEncryptHMAC(message, EncKey, HMACKey):
     h.update(C)
     tag = h.finalize()
     return C, IV, tag
-    
+
 
 
 
@@ -84,39 +85,40 @@ def MyDecryptHMAC(ciphertext, IV, tag,EncKey,HMACKey):
 def MyFileEncrypt(filepath):
     """
     Encrypts a file with a generated key.
+    Include policy of Encrypt-then-MAC.
     Creates encrypted file as 'encrypted_fileName.ext'
     INPUT:  filepath (str) path to file
     OUTPUT: c (byte str) - ciphertext
-            iv - (byte str) initialization vector
+            iv - (initialization vector)
             key - (byte str)
             ext - (str) file extension
     """
-    key = os.urandom(constants.KEY_LEN)
+    Enckey = os.urandom(constants.KEY_LEN)
     HMAC_key = os.urandom(constants.HMAC_KEY_LEN)
     in_file = open(filepath, "rb")
     data = in_file.read()
     in_file.close()
 
-    fileName, ext = fileInfo(filepath)
+    ext = fileInfo(filepath)[1]
 
-    c, iv, tag = MyEncryptHMAC(data,key,HMAC_key)
+    c, iv, tag = MyEncryptHMAC(data, Enckey, HMAC_key)
 
-    newPath = constants.FOLDER_PATH + "encrypted_" + fileName + "." + ext
-    out_file = open(newPath, "wb") # writing back to file
+    out_file = open(filepath, "wb") # writing over same file
     out_file.write(c)
     out_file.close()
 
-    return c, iv, tag, key, HMAC_key, ext
+    return c, iv, tag, Enckey, HMAC_key, ext
 
 
-def MyFileDecrypt(filepath, ext, IV, tag, EncKey, HMAC_Key):
+def MyFileDecrypt(filepath, IV, tag, EncKey, HMAC_Key, ext):
     """
-    Decrypts an encrypted file. 
+    Decrypts an encrypted file. Include policy of Encrypt-then-MAC.
     Creates a new file with original message as 'decrypted_fileName.ext'
     INPUT:  filepath - (str) path to encrypt8 v b bed file
             ext - (str) extension of file
             iv - (byte str) initialization vector
             key - (byte str) random key
+    OUTPUT: m - (byte str) original message
     """
     in_file = open(filepath, "rb")
     data = in_file.read()
@@ -126,13 +128,52 @@ def MyFileDecrypt(filepath, ext, IV, tag, EncKey, HMAC_Key):
 
     fileName = fileInfo(filepath)[0]
 
-    newPath = constants.FOLDER_PATH + "decrypted_" + fileName + "." + ext
+    newPath = "test-files/decrypted_" + fileName + "." + ext
     print("New Decrypted Path: \n", newPath)
     out_file = open(newPath, "wb") # writing decrypted message to file
     out_file.write(plaintext)
     out_file.close()
-    
+
     return plaintext
+
+
+
+def MyEncryptHMAC(message, EncKey, HMACKey):
+    """
+    Modified MyEncrypt to include policy of Encrypt-then-MAC
+    INPUT:  message - (byte str) byte string
+            EncKey - (byte str) encryption key
+            HMACKey - (byte str) key for HMAC tag generation
+    OUTPUT: C - (byte str) ciphertext
+            IV - (byte str) initialization vector
+            tag - (byte str) tag for HMAC verificatoin
+    """
+    C, IV = MyEncrypt(message,EncKey)
+    h = hmac.HMAC(HMACKey,hashes.SHA256(),backend = default_backend())
+    h.update(C)
+    tag = h.finalize()
+    return C, IV, tag
+
+
+
+def MyDecryptHMAC(ciphertext, IV, tag, EncKey, HMACKey):
+    """
+    Modified MyDecrypt to include verification of message using HMAC
+    INPUT:  ciphertext - (byte str) byte string
+            IV - (byte str) initialization vector
+            tag - (byte str) tag bits of original message
+            EncKey - (byte str) key used for encryption
+            HMACKey - (btye str) key used for HMAC tag generation
+    OUTPUT: plaintext - (byte str) decrypted message
+    """
+
+    h = hmac.HMAC(HMACKey, hashes.SHA256(), backend = default_backend())
+    h.update(ciphertext)
+    h.verify(tag)
+    plaintext = MyDecrypt(ciphertext,IV, EncKey)
+    # print("DECRYPTED WITH HMAC: \n", plaintext)
+    return plaintext
+
 
 
 def fileInfo(filepath):
@@ -145,33 +186,77 @@ def fileInfo(filepath):
     fileName = filepath.split("/")[-1]
     fileName = fileName.split(".")
     return fileName[0], fileName[1]
-    
+
+
+def writeToJSON(data):
+    """
+    Writes a python dictionary object to a json file
+    """
+    s = json.dumps(data)
+    with open("data.json", "w") as fp:
+        json.dump(s, fp)
+
 
 def main():
-    # TESTING WITH TEXT FILE
-    fileName = "378practicetext.txt"
-    C, IV, tag, key, hkey, ext = MyFileEncrypt(constants.FOLDER_PATH + fileName)
-    encryptedPath = "/Users/samantharain/Desktop/Encrypting/test-files/encrypted_" + fileName
-    m = MyFileDecrypt(encryptedPath, ext, IV, tag, key, hkey)
+
+    dataFileName = "EncData.json"
+    data = {}
+    folder = "test-files/"
+
+    #TESTING WITH TEXT FILE
+
+    filepath = "test-files/378practicetext.txt"
+    c, IV, tag, Enckey, hkey, ext = MyFileEncrypt(filepath)
+    m = MyFileDecrypt(filepath, IV, tag, Enckey, hkey, ext)
+
+    data[filepath] = {
+        "c" : str(c),
+        "iv" : str(IV),
+        "tag" : str(tag),
+        "Enckey": str(Enckey),
+        "HMAC_key" : str(hkey),
+        "ext" : ext
+    }
 
 
     # TESTING WITH JPEG FILE
-    fileName = "happy.jpg"
-    c, IV, tag, key, hkey, ext = MyFileEncrypt(constants.FOLDER_PATH + fileName)
+    filepath = "test-files/happy.jpg"
+    c, IV, tag, key, hkey, ext = MyFileEncrypt(filepath)
+
+    m = MyFileDecrypt(filepath, IV, tag, key, hkey, ext)
+
+    data[filepath] = {
+        "c" : str(c),
+        "iv" : str(IV),
+        "tag" : str(tag),
+        "Enckey": str(Enckey),
+        "HMAC_key" : str(hkey),
+        "ext" : ext
+    }
+
+
+    # writing to json file
+    writeToJSON(data)
 
     encryptedPath = "/Users/samantharain/Desktop/Encrypting/test-files/encrypted_" + fileName
     m = MyFileDecrypt(encryptedPath, ext, IV, tag, key, hkey)
-    print("Encrypted Path: \n", encryptedPath)
-
 
     # TESTING WITH PNG FILE
-    fileName = "CBC.png"
-    c, IV, tag, key, hkey, ext = MyFileEncrypt(constants.FOLDER_PATH + fileName)
+    # fileName = "CBC.png"
+    # c, IV, tag, key, hkey, ext = MyFileEncrypt(folder + fileName)
 
-    encryptedPath = "/Users/samantharain/Desktop/Encrypting/test-files/encrypted_" + fileName
-    m = MyFileDecrypt(encryptedPath, ext, IV, tag, key, hkey)
+    # encryptedPath = folder + "encrypted_" + fileName
+    # m = MyFileDecrypt(encryptedPath, IV, tag, key, hkey, ext)
+
+    # data[fileName] = {
+    #     "c" : c,
+    #     "iv" : IV,
+    #     "tag" : tag,
+    #     "Enckey": Enckey,
+    #     "HMAC_key" : hkey,
+    #     "ext" : ext
+    # }
 
 
 
 main()
-

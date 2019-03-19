@@ -105,3 +105,8 @@ venv.bak/
 
 # testing files
 test-files/
+
+.vscode/
+
+data.json
+data.json
