@@ -4,7 +4,7 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import padding 
 from cryptography.hazmat.primitives import hashes, hmac
 import constants
-import AES_Encrypt
+import AES_Encrypt as a
 
 def GenerateRSAKeys(filepath):
     #
@@ -77,7 +77,7 @@ def MyRSAFileEncrypt(data_file,rsa_file):
     #
 
     GenerateRSAKeys(rsa_file)
-    C, IV, tag, EncKey, HMACKey, ext = AES_Encrypt.MyFileEncrypt(data_file)
+    C, IV, tag, EncKey, HMACKey, ext = a.MyFileEncrypt(data_file)
     public_key = LoadRSAPublicKey(rsa_file)
     key = EncKey + HMACKey
     RSACipher = public_key.encrypt(
@@ -106,14 +106,56 @@ def MyRSAFileDecrypt(RSACipher,filepath, C, IV, tag, ext, rsa_file):
     )
     EncKey = keys[0:31]
     HMACKey = keys[32:63]
-    plaintext = AES_Encrypt.MyFileDecrypt(filepath, IV, tag, EncKey, HMACKey, ext)
+    plaintext = a.MyFileDecrypt(filepath, IV, tag, EncKey, HMACKey, ext)
     return plaintext
 
 
 def main():
+
     filepath = "happy.png"
     rsapath = ""
     RSACipher, C, IV, tag, ext = MyRSAFileEncrypt(filepath,rsapath)
     message = MyRSAFileDecrypt(RSACipher, filepath, C, IV, tag, ext, rsapath)
     print(message)
+
+
+    dataFileName = "EncData.json"
+    data = {}
+    folder = "test-files/"
+
+    #TESTING WITH TEXT FILE
+
+    filepath = "test-files/378practicetext.txt"
+    c, IV, tag, Enckey, hkey, ext = a.MyFileEncrypt(filepath)
+    m = a.MyFileDecrypt(filepath, IV, tag, Enckey, hkey, ext)
+
+    data[filepath] = {
+        "c" : str(c),
+        "iv" : str(IV),
+        "tag" : str(tag),
+        "Enckey": str(Enckey),
+        "HMAC_key" : str(hkey),
+        "ext" : ext
+    }
+
+
+    # TESTING WITH JPEG FILE
+    filepath = "test-files/happy.jpg"
+    c, IV, tag, key, hkey, ext = a.MyFileEncrypt(filepath)
+
+    m = a.MyFileDecrypt(filepath, IV, tag, key, hkey, ext)
+
+    data[filepath] = {
+        "c" : str(c),
+        "iv" : str(IV),
+        "tag" : str(tag),
+        "Enckey": str(Enckey),
+        "HMAC_key" : str(hkey),
+        "ext" : ext
+    }
+
+
+    # writing to json file
+    a.writeToJSON(data)
+
 

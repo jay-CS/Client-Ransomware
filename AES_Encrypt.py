@@ -238,8 +238,8 @@ def main():
     # writing to json file
     writeToJSON(data)
 
-    encryptedPath = "/Users/samantharain/Desktop/Encrypting/test-files/encrypted_" + fileName
-    m = MyFileDecrypt(encryptedPath, ext, IV, tag, key, hkey)
+#     encryptedPath = "/Users/samantharain/Desktop/Encrypting/test-files/encrypted_"
+#     m = MyFileDecrypt(encryptedPath, ext, IV, tag, key, hkey)
 
     # TESTING WITH PNG FILE
     # fileName = "CBC.png"
