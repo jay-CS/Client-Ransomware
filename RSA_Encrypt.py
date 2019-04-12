@@ -120,10 +120,10 @@ def writeToJSON(values):
     """
     data = {}
     data["signature"] = "hacked by 420security"
-    data["RSACipher"] = str(RSACipher)
-    data["C"] = str(C)
-    data["IV"] = str(IV)
-    data["tag"] = str(tag) 
+    data["RSACipher"] = RSACipher.decode("utf-8")
+    data["C"] = C.decode("utf-8")
+    data["IV"] = IV.decode("utf-8")
+    data["tag"] = tag.decode("utf-8")
     data["ext"] = ext
     newName = fileName + ".json"
 
@@ -137,22 +137,22 @@ def readFromJSON(fileName):
     Returns values stored in JSON file
     INPUT:  fileName - (str) name of file
     OUTPUT:  (RSACipher, C, IV, tag, ext)
-    TODO: convert to bytes
+    TODO: test byte conversion with 'b'
     """
     with open(fileName) as json_file:  
         data = json.load(json_file)
 
-    RSACipher = data["RSACipher"]
-    C = data["C"]
-    IV = data["IV"]
-    tag = data["tag"]
+    RSACipher = bytes(data["RSACipher"], "utf-8")
+    C = bytes(data["C"], "utf-8")
+    IV = bytes(data["IV"], "utf-8")
+    tag = bytes(data["tag"], "utf-8")
     ext = data["ext"]
     
     return RSACipher, C, IV, tag, ext
 
 
 def main():
-    print("TESTING WITH FILE")
+    print("TESTING WITH FILE TEXT FILE\n\n")
     filepath = "test-files/test.txt"
     rsapath = ""
     RSACipher, C, IV, tag, fileName, ext = MyRSAFileEncrypt(filepath,rsapath)
@@ -164,17 +164,5 @@ def main():
 
 
 main()
-    # data[filepath] = {
-    #     "c" : str(c),
-    #     "iv" : str(IV),
-    #     "tag" : str(tag),
-    #     "Enckey": str(Enckey),
-    #     "HMAC_key" : str(hkey),
-    #     "ext" : ext
-    # }
-
-
-    # # writing to json file
-    # a.writeToJSON(data)
 
 
