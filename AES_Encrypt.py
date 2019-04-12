@@ -189,77 +189,10 @@ def fileInfo(filepath):
     return '.'.join(fileName), ext
 
 
-def writeToJSON(data):
-    """
-    Writes a python dictionary object to a json file
-    """
-    s = json.dumps(data)
-    with open("data.json", "w") as fp:
-        json.dump(s, fp)
-
 
 def main():
-
-    # dataFileName = "EncData.json"
-    # data = {}
-    # folder = "test-files/"
-
-    # #TESTING WITH TEXT FILE
-
-    # filepath = "test-files/378practicetext.txt"
-    # c, IV, tag, Enckey, hkey, ext = MyFileEncrypt(filepath)
-    # m = MyFileDecrypt(filepath, IV, tag, Enckey, hkey, ext)
-
-    # data[filepath] = {
-    #     "c" : str(c),
-    #     "iv" : str(IV),
-    #     "tag" : str(tag),
-    #     "Enckey": str(Enckey),
-    #     "HMAC_key" : str(hkey),
-    #     "ext" : ext
-    # }
 
     filepath = "test-files/378practice.txt"
     print(fileInfo(filepath))
 
-    # # TESTING WITH JPEG FILE
-    # filepath = "test-files/happy.jpg"
-    # c, IV, tag, key, hkey, ext = MyFileEncrypt(filepath)
-
-    # m = MyFileDecrypt(filepath, IV, tag, key, hkey, ext)
-
-    # data[filepath] = {
-    #     "c" : str(c),
-    #     "iv" : str(IV),
-    #     "tag" : str(tag),
-    #     "Enckey": str(Enckey),
-    #     "HMAC_key" : str(hkey),
-    #     "ext" : ext
-    # }
-
-
-    # # writing to json file
-    # writeToJSON(data)
-
-#     encryptedPath = "/Users/samantharain/Desktop/Encrypting/test-files/encrypted_"
-#     m = MyFileDecrypt(encryptedPath, ext, IV, tag, key, hkey)
-
-    # TESTING WITH PNG FILE
-    # fileName = "CBC.png"
-    # c, IV, tag, key, hkey, ext = MyFileEncrypt(folder + fileName)
-
-    # encryptedPath = folder + "encrypted_" + fileName
-    # m = MyFileDecrypt(encryptedPath, IV, tag, key, hkey, ext)
-
-    # data[fileName] = {
-    #     "c" : c,
-    #     "iv" : IV,
-    #     "tag" : tag,
-    #     "Enckey": Enckey,
-    #     "HMAC_key" : hkey,
-    #     "ext" : ext
-    # }
-
-
-
-main()
+# main()

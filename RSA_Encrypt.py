@@ -77,7 +77,7 @@ def MyRSAFileEncrypt(filepath,rsa_file):
     #
 
     GenerateRSAKeys(rsa_file)
-    C, IV, tag, EncKey, HMACKey, ext = a.MyFileEncrypt(filepath)
+    C, IV, tag, EncKey, HMACKey, fileName, ext = a.MyFileEncrypt(filepath)
     public_key = LoadRSAPublicKey(rsa_file)
     key = EncKey + HMACKey
     RSACipher = public_key.encrypt(
@@ -88,7 +88,9 @@ def MyRSAFileEncrypt(filepath,rsa_file):
             label=None
         )
     )
-    return RSACipher, C, IV, tag, ext
+    
+    return RSACipher, C, IV, tag, fileName, ext
+
 
 def MyRSAFileDecrypt(RSACipher,filepath, C, IV, tag, ext, rsa_file):
     #
@@ -110,52 +112,69 @@ def MyRSAFileDecrypt(RSACipher,filepath, C, IV, tag, ext, rsa_file):
     return plaintext
 
 
-def main():
+def writeToJSON(values):
+    """
+    Writes values to a json file
+    INPUT: value - (RSACipher, C, IV, tag, fileName, ext)
+    # TODO: delete original file
+    """
+    data = {}
+    data["signature"] = "hacked by 420security"
+    data["RSACipher"] = str(RSACipher)
+    data["C"] = str(C)
+    data["IV"] = str(IV)
+    data["tag"] = str(tag) 
+    data["ext"] = ext
+    newName = fileName + ".json"
 
-    filepath = "happy.png"
+    s = json.dumps(data)
+    with open(newName, "w") as fp:
+        json.dump(s, fp)
+
+
+def readFromJSON(fileName):
+    """
+    Returns values stored in JSON file
+    INPUT:  fileName - (str) name of file
+    OUTPUT:  (RSACipher, C, IV, tag, ext)
+    TODO: convert to bytes
+    """
+    with open(fileName) as json_file:  
+        data = json.load(json_file)
+
+    RSACipher = data["RSACipher"]
+    C = data["C"]
+    IV = data["IV"]
+    tag = data["tag"]
+    ext = data["ext"]
+    
+    return RSACipher, C, IV, tag, ext
+
+
+def main():
+    print("TESTING WITH FILE")
+    filepath = "test-files/test.txt"
     rsapath = ""
-    RSACipher, C, IV, tag, ext = MyRSAFileEncrypt(filepath,rsapath)
+    RSACipher, C, IV, tag, fileName, ext = MyRSAFileEncrypt(filepath,rsapath)
+
+    writeToJSON(RSACipher, C, IV, tag, fileName, ext)
+
     message = MyRSAFileDecrypt(RSACipher, filepath, C, IV, tag, ext, rsapath)
     print(message)
 
 
-    dataFileName = "EncData.json"
-    data = {}
-    folder = "test-files/"
-
-    #TESTING WITH TEXT FILE
-
-    filepath = "test-files/378practicetext.txt"
-    c, IV, tag, Enckey, hkey, ext = a.MyFileEncrypt(filepath)
-    m = a.MyFileDecrypt(filepath, IV, tag, Enckey, hkey, ext)
-
-    data[filepath] = {
-        "c" : str(c),
-        "iv" : str(IV),
-        "tag" : str(tag),
-        "Enckey": str(Enckey),
-        "HMAC_key" : str(hkey),
-        "ext" : ext
-    }
+main()
+    # data[filepath] = {
+    #     "c" : str(c),
+    #     "iv" : str(IV),
+    #     "tag" : str(tag),
+    #     "Enckey": str(Enckey),
+    #     "HMAC_key" : str(hkey),
+    #     "ext" : ext
+    # }
 
 
-    # TESTING WITH JPEG FILE
-    filepath = "test-files/happy.jpg"
-    c, IV, tag, key, hkey, ext = a.MyFileEncrypt(filepath)
-
-    m = a.MyFileDecrypt(filepath, IV, tag, key, hkey, ext)
-
-    data[filepath] = {
-        "c" : str(c),
-        "iv" : str(IV),
-        "tag" : str(tag),
-        "Enckey": str(Enckey),
-        "HMAC_key" : str(hkey),
-        "ext" : ext
-    }
-
-
-    # writing to json file
-    a.writeToJSON(data)
+    # # writing to json file
+    # a.writeToJSON(data)
 
 
