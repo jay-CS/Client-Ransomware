@@ -71,13 +71,13 @@ def LoadRSAPublicKey(filepath):
     return public_key
 
 
-def MyRSAFileEncrypt(data_file,rsa_file):
+def MyRSAFileEncrypt(filepath,rsa_file):
     #
     #
     #
 
     GenerateRSAKeys(rsa_file)
-    C, IV, tag, EncKey, HMACKey, ext = a.MyFileEncrypt(data_file)
+    C, IV, tag, EncKey, HMACKey, ext = a.MyFileEncrypt(filepath)
     public_key = LoadRSAPublicKey(rsa_file)
     key = EncKey + HMACKey
     RSACipher = public_key.encrypt(

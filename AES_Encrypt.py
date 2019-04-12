@@ -72,7 +72,6 @@ def MyEncryptHMAC(message, EncKey, HMACKey):
 
 
 
-
 def MyDecryptHMAC(ciphertext, IV, tag,EncKey,HMACKey):
     h = hmac.HMAC(HMACKey, hashes.SHA256(), backend = default_backend())
     h.update(ciphertext)
@@ -91,6 +90,7 @@ def MyFileEncrypt(filepath):
     OUTPUT: c (byte str) - ciphertext
             iv - (initialization vector)
             key - (byte str)
+            fileName - (str) name of file
             ext - (str) file extension
     """
     Enckey = os.urandom(constants.KEY_LEN)
@@ -99,7 +99,7 @@ def MyFileEncrypt(filepath):
     data = in_file.read()
     in_file.close()
 
-    ext = fileInfo(filepath)[1]
+    fileName, ext = fileInfo(filepath)[1]
 
     c, iv, tag = MyEncryptHMAC(data, Enckey, HMAC_key)
 
@@ -107,7 +107,7 @@ def MyFileEncrypt(filepath):
     out_file.write(c)
     out_file.close()
 
-    return c, iv, tag, Enckey, HMAC_key, ext
+    return c, iv, tag, Enckey, HMAC_key, fileName, ext
 
 
 def MyFileDecrypt(filepath, IV, tag, EncKey, HMAC_Key, ext):
@@ -185,7 +185,8 @@ def fileInfo(filepath):
     """
     fileName = filepath.split("/")[-1]
     fileName = fileName.split(".")
-    return fileName[0], fileName[1]
+    ext = fileName.pop()
+    return '.'.join(fileName), ext
 
 
 def writeToJSON(data):
@@ -199,44 +200,46 @@ def writeToJSON(data):
 
 def main():
 
-    dataFileName = "EncData.json"
-    data = {}
-    folder = "test-files/"
+    # dataFileName = "EncData.json"
+    # data = {}
+    # folder = "test-files/"
 
-    #TESTING WITH TEXT FILE
+    # #TESTING WITH TEXT FILE
 
-    filepath = "test-files/378practicetext.txt"
-    c, IV, tag, Enckey, hkey, ext = MyFileEncrypt(filepath)
-    m = MyFileDecrypt(filepath, IV, tag, Enckey, hkey, ext)
+    # filepath = "test-files/378practicetext.txt"
+    # c, IV, tag, Enckey, hkey, ext = MyFileEncrypt(filepath)
+    # m = MyFileDecrypt(filepath, IV, tag, Enckey, hkey, ext)
 
-    data[filepath] = {
-        "c" : str(c),
-        "iv" : str(IV),
-        "tag" : str(tag),
-        "Enckey": str(Enckey),
-        "HMAC_key" : str(hkey),
-        "ext" : ext
-    }
+    # data[filepath] = {
+    #     "c" : str(c),
+    #     "iv" : str(IV),
+    #     "tag" : str(tag),
+    #     "Enckey": str(Enckey),
+    #     "HMAC_key" : str(hkey),
+    #     "ext" : ext
+    # }
+
+    filepath = "test-files/378practice.txt"
+    print(fileInfo(filepath))
+
+    # # TESTING WITH JPEG FILE
+    # filepath = "test-files/happy.jpg"
+    # c, IV, tag, key, hkey, ext = MyFileEncrypt(filepath)
+
+    # m = MyFileDecrypt(filepath, IV, tag, key, hkey, ext)
+
+    # data[filepath] = {
+    #     "c" : str(c),
+    #     "iv" : str(IV),
+    #     "tag" : str(tag),
+    #     "Enckey": str(Enckey),
+    #     "HMAC_key" : str(hkey),
+    #     "ext" : ext
+    # }
 
 
-    # TESTING WITH JPEG FILE
-    filepath = "test-files/happy.jpg"
-    c, IV, tag, key, hkey, ext = MyFileEncrypt(filepath)
-
-    m = MyFileDecrypt(filepath, IV, tag, key, hkey, ext)
-
-    data[filepath] = {
-        "c" : str(c),
-        "iv" : str(IV),
-        "tag" : str(tag),
-        "Enckey": str(Enckey),
-        "HMAC_key" : str(hkey),
-        "ext" : ext
-    }
-
-
-    # writing to json file
-    writeToJSON(data)
+    # # writing to json file
+    # writeToJSON(data)
 
 #     encryptedPath = "/Users/samantharain/Desktop/Encrypting/test-files/encrypted_"
 #     m = MyFileDecrypt(encryptedPath, ext, IV, tag, key, hkey)
