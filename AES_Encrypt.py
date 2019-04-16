@@ -54,89 +54,6 @@ def MyDecrypt(ciphertext, iv, key):
     return plaintext
 
 
-def MyEncryptHMAC(message, EncKey, HMACKey):
-    """
-    Modified myEncrypt to include policy of Encrypt-then-MAC
-    INPUT:  message
-            EncKey
-            HMACKey
-    OUTPUT: C (ciphertext, byte string)
-            IV  (initialization vector)
-            tag ()
-    """
-    C, IV = MyEncrypt(message,EncKey)
-    h = hmac.HMAC(HMACKey,hashes.SHA256(),backend = default_backend())
-    h.update(C)
-    tag = h.finalize()
-    return C, IV, tag
-
-
-
-def MyDecryptHMAC(ciphertext, IV, tag,EncKey,HMACKey):
-    h = hmac.HMAC(HMACKey, hashes.SHA256(), backend = default_backend())
-    h.update(ciphertext)
-    h.verify(tag)
-    plaintext = MyDecrypt(ciphertext,IV, EncKey)
-    print("DECRYPTED WITH HMAC: \n", plaintext)
-    return plaintext
-
-
-def MyFileEncrypt(filepath):
-    """
-    Encrypts a file with a generated key.
-    Include policy of Encrypt-then-MAC.
-    Creates encrypted file as 'encrypted_fileName.ext'
-    INPUT:  filepath (str) path to file
-    OUTPUT: c (byte str) - ciphertext
-            iv - (initialization vector)
-            key - (byte str)
-            fileName - (str) name of file
-            ext - (str) file extension
-    """
-    Enckey = os.urandom(constants.KEY_LEN)
-    HMAC_key = os.urandom(constants.HMAC_KEY_LEN)
-    in_file = open(filepath, "rb")
-    data = in_file.read()
-    in_file.close()
-
-    fileName, ext = fileInfo(filepath)[1]
-
-    c, iv, tag = MyEncryptHMAC(data, Enckey, HMAC_key)
-
-    out_file = open(filepath, "wb") # writing over same file
-    out_file.write(c)
-    out_file.close()
-
-    return c, iv, tag, Enckey, HMAC_key, fileName, ext
-
-
-def MyFileDecrypt(filepath, IV, tag, EncKey, HMAC_Key, ext):
-    """
-    Decrypts an encrypted file. Include policy of Encrypt-then-MAC.
-    Creates a new file with original message as 'decrypted_fileName.ext'
-    INPUT:  filepath - (str) path to encrypt8 v b bed file
-            ext - (str) extension of file
-            iv - (byte str) initialization vector
-            key - (byte str) random key
-    OUTPUT: m - (byte str) original message
-    """
-    in_file = open(filepath, "rb")
-    data = in_file.read()
-    in_file.close()
-
-    plaintext = MyDecryptHMAC(data, IV, tag, EncKey, HMAC_Key)
-
-    fileName = fileInfo(filepath)[0]
-
-    newPath = "test-files/decrypted_" + fileName + "." + ext
-    print("New Decrypted Path: \n", newPath)
-    out_file = open(newPath, "wb") # writing decrypted message to file
-    out_file.write(plaintext)
-    out_file.close()
-
-    return plaintext
-
-
 
 def MyEncryptHMAC(message, EncKey, HMACKey):
     """
@@ -155,9 +72,9 @@ def MyEncryptHMAC(message, EncKey, HMACKey):
     return C, IV, tag
 
 
-
 def MyDecryptHMAC(ciphertext, IV, tag, EncKey, HMACKey):
     """
+    #C, IV, tag, EncKey, HMAC_Key
     Modified MyDecrypt to include verification of message using HMAC
     INPUT:  ciphertext - (byte str) byte string
             IV - (byte str) initialization vector
@@ -171,8 +88,51 @@ def MyDecryptHMAC(ciphertext, IV, tag, EncKey, HMACKey):
     h.update(ciphertext)
     h.verify(tag)
     plaintext = MyDecrypt(ciphertext,IV, EncKey)
-    # print("DECRYPTED WITH HMAC: \n", plaintext)
+
     return plaintext
+
+
+def MyFileEncrypt(filepath):
+    """
+    Encrypts a file with a generated key.
+    Include policy of Encrypt-then-MAC.
+    Creates encrypted file as 'encrypted_fileName.ext'
+    INPUT:  filepath (str) path to file
+    OUTPUT: c (byte str) - ciphertext
+            iv - (initialization vector)
+            key - (byte str)
+            fileName - (str) name of file
+            ext - (str) file extension
+    """
+    Enckey = os.urandom(constants.KEY_LEN)
+    HMAC_key = os.urandom(constants.HMAC_KEY_LEN)
+    in_file = open(filepath, "rb")  # reading file as bytes
+    data = in_file.read()
+    in_file.close()
+
+    fileName, ext = fileInfo(filepath)
+
+    c, iv, tag = MyEncryptHMAC(data, Enckey, HMAC_key)
+
+    return c, iv, tag, Enckey, HMAC_key, fileName, ext
+
+
+def MyFileDecrypt(filepath, C, IV, tag, EncKey, HMAC_Key, ext):
+    """
+    #filepath, C, IV, tag, EncKey, HMACKey, ext
+    Decrypts an encrypted file. Include policy of Encrypt-then-MAC.
+    Creates a new file with original message as 'decrypted_fileName.ext'
+    INPUT:  filepath - (str) path to encrypt8 v b bed file
+            ext - (str) extension of file
+            iv - (byte str) initialization vector
+            key - (byte str) random key
+    OUTPUT: m - (byte str) original message
+    """
+
+    plaintext = MyDecryptHMAC(C, IV, tag, EncKey, HMAC_Key)
+
+    return filepath, plaintext
+
 
 
 
