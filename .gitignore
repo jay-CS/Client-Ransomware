@@ -110,3 +110,6 @@ test-files/
 
 data.json
 data.json
+
+*.pem
+keys/

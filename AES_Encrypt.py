@@ -13,9 +13,9 @@ from cryptography.hazmat.primitives import hashes, hmac
 def MyEncrypt(message, key):
     """
     Encrypts a message using AES. The message is padded if the last block length is not 32 bits.
-    INPUT:  message - (byte str) message for encryptipn
-            key - (byte str) random key
-    OUTPUT: ciphertext (byte str) - encrypted message
+    INPUT:  message - (bytes) message for encryptipn
+            key - (bytes) random key
+    OUTPUT: ciphertext (bytes) - encrypted message
             iv (initialization vector)
     """
 
@@ -39,10 +39,10 @@ def MyEncrypt(message, key):
 def MyDecrypt(ciphertext, iv, key):
     """
     Decryptes the cipher text to its original message
-    INPUT:  ciphertext - (byte str) message to be decrypte
+    INPUT:  ciphertext - (bytes) message to be decrypte
             iv - (initialization vector)
-            key - (byte str) random key
-    OUTPIT: plaintext - (byte str) decrypted message
+            key - (bytes) random key
+    OUTPIT: plaintext - (bytes) decrypted message
     """
     backend = default_backend()
     cipher = Cipher(algorithms.AES(key),modes.CBC(iv),backend = backend)
@@ -58,12 +58,12 @@ def MyDecrypt(ciphertext, iv, key):
 def MyEncryptHMAC(message, EncKey, HMACKey):
     """
     Modified MyEncrypt to include policy of Encrypt-then-MAC
-    INPUT:  message - (byte str) byte string
-            EncKey - (byte str) encryption key
-            HMACKey - (byte str) key for HMAC tag generation
-    OUTPUT: C - (byte str) ciphertext
-            IV - (byte str) initialization vector
-            tag - (byte str) tag for HMAC verificatoin
+    INPUT:  message - (bytes) byte string
+            EncKey - (bytes) encryption key
+            HMACKey - (bytes) key for HMAC tag generation
+    OUTPUT: C - (bytes) ciphertext
+            IV - (bytes) initialization vector
+            tag - (bytes) tag for HMAC verificatoin
     """
     C, IV = MyEncrypt(message,EncKey)
     h = hmac.HMAC(HMACKey,hashes.SHA256(),backend = default_backend())
@@ -76,12 +76,12 @@ def MyDecryptHMAC(ciphertext, IV, tag, EncKey, HMACKey):
     """
     #C, IV, tag, EncKey, HMAC_Key
     Modified MyDecrypt to include verification of message using HMAC
-    INPUT:  ciphertext - (byte str) byte string
-            IV - (byte str) initialization vector
-            tag - (byte str) tag bits of original message
-            EncKey - (byte str) key used for encryption
-            HMACKey - (btye str) key used for HMAC tag generation
-    OUTPUT: plaintext - (byte str) decrypted message
+    INPUT:  ciphertext - (bytes) encrypted message
+            IV - (bytes) initialization vector
+            tag - (bytes) tag bits of original message
+            EncKey - (bytes) key used for encryption
+            HMACKey - (btyes) key used for HMAC tag generation
+    OUTPUT: plaintext - (bytes) decrypted message
     """
 
     h = hmac.HMAC(HMACKey, hashes.SHA256(), backend = default_backend())
@@ -98,9 +98,9 @@ def MyFileEncrypt(filepath):
     Include policy of Encrypt-then-MAC.
     Creates encrypted file as 'encrypted_fileName.ext'
     INPUT:  filepath (str) path to file
-    OUTPUT: c (byte str) - ciphertext
+    OUTPUT: c (bytes) - ciphertext
             iv - (initialization vector)
-            key - (byte str)
+            key - (bytes)
             fileName - (str) name of file
             ext - (str) file extension
     """
@@ -114,7 +114,7 @@ def MyFileEncrypt(filepath):
 
     c, iv, tag = MyEncryptHMAC(data, Enckey, HMAC_key)
 
-    return c, iv, tag, Enckey, HMAC_key, fileName, ext
+    return c, iv, tag, Enckey, HMAC_key, ext
 
 
 def MyFileDecrypt(filepath, C, IV, tag, EncKey, HMAC_Key, ext):
@@ -124,14 +124,14 @@ def MyFileDecrypt(filepath, C, IV, tag, EncKey, HMAC_Key, ext):
     Creates a new file with original message as 'decrypted_fileName.ext'
     INPUT:  filepath - (str) path to encrypt8 v b bed file
             ext - (str) extension of file
-            iv - (byte str) initialization vector
-            key - (byte str) random key
-    OUTPUT: m - (byte str) original message
+            iv - (bytes) initialization vector
+            key - (bytes) random key
+    OUTPUT: m - (bytes) original message
     """
 
     plaintext = MyDecryptHMAC(C, IV, tag, EncKey, HMAC_Key)
 
-    return filepath, plaintext
+    return plaintext
 
 
 
@@ -140,7 +140,7 @@ def fileInfo(filepath):
     """
     Gets the file name and extension from a filepath
     INPUT:  filepath - (str) path to file
-    OUTPUT: fileName[0] - (str) name of file
+    OUTPUT: fileName[0] - (str) name of file without extension
             fileName[1] - (str) extension of file
     """
     fileName = filepath.split("/")[-1]
