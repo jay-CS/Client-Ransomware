@@ -189,6 +189,7 @@ def readFromJSON(filepath):
     """
     with open(filepath) as json_file:  
         data = json.load(json_file)
+    json_file.close()
 
     RSACipher = b64decode(data["RSACipher"])
     C = b64decode(data["C"])
