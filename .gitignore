@@ -108,8 +108,7 @@ test-files/
 
 .vscode/
 
-data.json
-data.json
-
 *.pem
 keys/
+
+.DS_Store
