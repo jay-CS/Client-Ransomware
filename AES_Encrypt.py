@@ -1,5 +1,4 @@
 import os
-import base64
 import constants
 from cryptography.hazmat.primitives.ciphers.aead import AESCCM
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
@@ -150,7 +149,7 @@ def fileInfo(filepath):
 
 
 
-def main():
+def test():
 
     filepath = "test-files/378practice.txt"
     print(fileInfo(filepath))
