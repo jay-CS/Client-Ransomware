@@ -9,3 +9,4 @@ RSA_KEYSIZE = 2048     # length of the of modulus key in bits, should be at leas
 RSA_EXPONENT = 65537   # public exponent of the new key being generated
 RSA_PRIVATE_KEY_PATH = "keys/private_key.pem"
 RSA_PUBLIC_KEY_PATH = "keys/public_key.pem"
+RSA_KEYS_FOLDER = "keys/"

